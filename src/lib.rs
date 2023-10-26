@@ -1,8 +1,9 @@
+#![feature(int_roundings)]
 use std::ops::Rem;
 
 mod tests;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct Palcomp {
     palettes: Vec<u64>,
     data: Vec<u64>,
@@ -82,7 +83,7 @@ impl Palcomp {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Channel {
     data: Palcomp,
 }
@@ -98,18 +99,18 @@ impl Channel {
         self.data.decompress().into_iter()
     }
 
-    pub fn get(&self, indices: Vec<usize>) -> Vec<u64> {
+    pub fn get<IntoIter: IntoIterator<Item = usize>>(&self, iter: IntoIter) -> Vec<u64> {
         let raw = self.data.decompress();
-        let mut data = Vec::with_capacity(indices.len());
-        for index in indices {
+        let mut data = vec![];
+        for index in iter {
             data.push(*raw.get(index).expect("could not find data at index"))
         }
         data
     }
 
-    pub fn set(&mut self, indexed_data: &[(usize, u64)]) {
+    pub fn set<IntoIter: IntoIterator<Item = (usize, u64)>>(&mut self, iter: IntoIter) {
         let mut raw = self.data.decompress();
-        for (index, data) in indexed_data.to_vec() {
+        for (index, data) in iter {
             *raw.get_mut(index).expect("could not find data at index") = data;
         }
         self.data = Palcomp::compress(&raw);
