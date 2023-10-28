@@ -1,9 +1,11 @@
 #![feature(int_roundings)]
 use std::ops::Rem;
 
+use serde::{Deserialize, Serialize};
+
 mod tests;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 struct Palcomp {
     palettes: Vec<u64>,
     data: Vec<u64>,
@@ -83,7 +85,7 @@ impl Palcomp {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Serialize, Deserialize)]
 pub struct Channel {
     data: Palcomp,
 }
@@ -99,19 +101,19 @@ impl Channel {
         self.data.decompress().into_iter()
     }
 
-    pub fn get<IntoIter: IntoIterator<Item = usize>>(&self, iter: IntoIter) -> Vec<u64> {
+    pub fn get<IntoIter: IntoIterator<Item = u64>>(&self, iter: IntoIter) -> Vec<u64> {
         let raw = self.data.decompress();
         let mut data = vec![];
         for index in iter {
-            data.push(*raw.get(index).expect("could not find data at index"))
+            data.push(*raw.get(index as usize).expect("could not find data at index"))
         }
         data
     }
 
-    pub fn set<IntoIter: IntoIterator<Item = (usize, u64)>>(&mut self, iter: IntoIter) {
+    pub fn set<IntoIter: IntoIterator<Item = (u64, u64)>>(&mut self, iter: IntoIter) {
         let mut raw = self.data.decompress();
         for (index, data) in iter {
-            *raw.get_mut(index).expect("could not find data at index") = data;
+            *raw.get_mut(index as usize).expect("could not find data at index") = data;
         }
         self.data = Palcomp::compress(&raw);
     }
